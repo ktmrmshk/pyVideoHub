@@ -122,11 +122,14 @@ class Labels(object):
             except socket.timeout:
                 break
         #print msg
-    def make_default(self, num_ch, prefix):
+    def make_default(self, num_ch, prefix='label', is_overwrite=False):
         labels=OrderedDict()
         for i in range(num_ch):
             labels[ str(i) ] = '%s %d' % (prefix, i+1)
+        if is_overwrite:
+            self.labels=labels
         return labels
+    
         
 
 class SerialPortDirectons(object):
@@ -185,10 +188,12 @@ class VideoRouting(object):
                 break
         print msg
         
-    def make_default(self, num_ch):
+    def make_default(self, num_ch, is_overwrite=False):
         routes=OrderedDict()
         for i in range(num_ch):
-            routes[ str(i) ] = '%d' %  (i+1)
+            routes[ str(i) ] = i
+        if is_overwrite:
+            self.routes = routes
         return routes
 
 class OutputLocks(object):
@@ -389,12 +394,19 @@ class Videohub(object):
         self.tmp_monitor_route.setdevice(self.sock)
         self.tmp_serial_route.setdevice(self.sock)
 
-    def make_default_label(self):
-        pass
-    def make_default_route(self):
-        pass
-    def set_route(self, out_route_):
-        pass
+    def set_default_label(self):
+        self.tmp_in_label.make_default(self.device.video_inputs, 'input', True)
+        self.tmp_out_label.make_default(self.device.video_outputs, 'output', True)
+        self.tmp_monitor_label.make_default(self.device.video_monitoring_outputs, 'monitor', True)
+        self.tmp_serial_label.make_default(self.device.serial_ports, 'serial', True)
+        self.set_label()
+   
+    def set_default_route(self):
+        self.tmp_out_route.make_default(self.device.video_outputs, True)
+        self.tmp_monitor_route.make_default(self.device.video_monitoring_outputs, True)
+        #self.tmp_serial_route.setdevice(self.sock)
+        self.set_route()
+
 
 tag = Labels('in_label')
 print json.dumps( tag.make_default(72, 'hoge'), indent=2 )
@@ -411,6 +423,7 @@ vh.save_label('test.json')
 
 #vh.set_label()
 #vh.set_route()
+vh.set_default_route()
 
 vh.closeHub()
 
