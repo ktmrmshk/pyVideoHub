@@ -1,6 +1,8 @@
 import socket
 import re
 from collections import OrderedDict
+import json
+
 HOST='172.28.127.58'
 PORT=9990
 RECVMAX=9000
@@ -81,6 +83,9 @@ class Labels(object):
     def show(self):
         for k,v in self.labels.items():
             print '%d, %s' % (k, v)
+    def save(self, filename):
+        with open(filename, 'w') as  f:
+            f.write( json.dumps(self.labels) )
 
 class SerialPortDirectons(object):
     def __init__(self):
@@ -96,7 +101,10 @@ class SerialPortDirectons(object):
                 idx+=1
     def show(self):
         for k,v in self.directions.items():
-            print '%d, %s' % (k, v)    
+            print '%d, %s' % (k, v)
+    def save(self, filename):
+        with open(filename, 'w') as  f:
+            f.write( json.dumps(self.directions) )
 
 class VideoRouting(object):
     def __init__(self):
@@ -113,6 +121,9 @@ class VideoRouting(object):
     def show(self):
         for k,v in self.directions.items():
             print '%d, %d' % (k, v)
+    def save(self, filename):
+        with open(filename, 'w') as  f:
+            f.write( json.dumps(self.routes) )
 
 class OutputLocks(object):
     def __init__(self):
@@ -129,6 +140,9 @@ class OutputLocks(object):
     def show(self):
         for k,v in self.locks.items():
             print '%d, %d' % (k, v)
+    def save(self, filename):
+        with open(filename, 'w') as  f:
+            f.write( json.dumps(self.locks) )
         
 class Videohub(object):
     def __init__(self):
@@ -177,47 +191,55 @@ class Videohub(object):
     def parse_initmsg(self):
         msgblks = self.divMsgBlock(self.initmsg)
         for blk in msgblks:
-            m = re.match(r'INPUT LABELS:', blk)
+            m = re.match(self.sec['proto'], blk)
+            if m:
+                self.proto.parse(blk)
+                continue
+            m = re.match(self.sec['device'], blk)
+            if m:
+                self.device.parse(blk)
+                continue
+            m = re.match(self.sec['in_label'], blk)
             if m:
                 self.in_label.parse(blk)
                 continue
-            m = re.match(r'OUTPUT LABELS:', blk)
+            m = re.match(self.sec['out_label'], blk)
             if m:
                 self.out_label.parse(blk)
                 continue            
-            m = re.match(r'MONITORING OUTPUT LABELS:', blk)
+            m = re.match(self.sec['monitor_label'], blk)
             if m:
                 self.monitor_label.parse(blk)
                 continue         
-            m = re.match(r'SERIAL PORT LABELS:', blk)
+            m = re.match(self.sec['serial_label'], blk)
             if m:
                 self.serial_label.parse(blk)
                 continue
-            m = re.match(r'SERIAL PORT DIRECTIONS:', blk)
+            m = re.match(self.sec['serial_dir'], blk)
             if m:
                 self.serial_dir.parse(blk)
                 continue
-            m = re.match(r'VIDEO OUTPUT ROUTING:', blk)
+            m = re.match(self.sec['out_route'], blk)
             if m:
                 self.out_route.parse(blk)
                 continue
-            m = re.match(r'VIDEO MONITORING OUTPUT ROUTING:', blk)
+            m = re.match(self.sec['monitor_route'], blk)
             if m:
                 self.monitor_route.parse(blk)
                 continue
-            m = re.match(r'SERIAL PORT ROUTING:', blk)
+            m = re.match(self.sec['serial_route'], blk)
             if m:
                 self.serial_route.parse(blk)
                 continue
-            m = re.match(r'VIDEO OUTPUT LOCKS:', blk)
+            m = re.match(self.sec['out_lock'], blk)
             if m:
                 self.out_lock.parse(blk)
                 continue
-            m = re.match(r'MONITORING OUTPUT LOCKS:', blk)
+            m = re.match(self.sec['monitor_lock'], blk)
             if m:
                 self.monitor_lock.parse(blk)
                 continue
-            m = re.match(r'SERIAL PORT LOCKS:', blk)
+            m = re.match(self.sec['serial_lock'], blk)
             if m:
                 self.serial_lock.parse(blk)
                 continue
