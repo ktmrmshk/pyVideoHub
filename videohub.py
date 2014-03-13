@@ -407,44 +407,19 @@ class Videohub(object):
         #self.tmp_serial_route.setdevice(self.sock)
         self.set_route()
 
-
-tag = Labels('in_label')
-print json.dumps( tag.make_default(72, 'hoge'), indent=2 )
-r= VideoRouting('out_route')
-print json.dumps( r.make_default(72), indent=2 )
-
-
-vh = Videohub()
-vh.openHub(HOST, PORT)
-vh.save_label('test.json')
-#vh.save_route('test2.json')
-#vh.load_label('test.json')
-#vh.load_route('test2.json')
-
-#vh.set_label()
-#vh.set_route()
-vh.set_default_route()
-
-vh.closeHub()
-
-exit()
-print msgblocks
-for msg in msgblocks:
-    print msg[:10]
-exit()
-
-for line in ret.splitlines():
-    pass
-    #
-    #if (re.match(r'VIDEOHUB DEVICE:', line)):
-
-#s.close()
-#exit()
-
-print '[Recv %d bytes]%s' %  (len(ret), ret)
-
-print '>>try recv1'
-ret = s.recv(RECVMAX)
-print '[Recv %d bytes]%s' %  (len(ret), ret)
-
-s.close()
+if __name__ == '__main__':
+    
+    vh = Videohub()
+    vh.openHub(HOST, PORT)
+    vh.save_label('test.json')
+    #vh.save_route('test2.json')
+    #vh.load_label('test.json')
+    #vh.load_route('test2.json')
+    
+    #vh.set_label()
+    #vh.set_route()
+    #vh.set_default_route()
+    
+    vh.closeHub()
+    
+    exit()
