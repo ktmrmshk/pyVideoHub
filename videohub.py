@@ -1,7 +1,7 @@
 import socket
 import re
 from collections import OrderedDict
-HOST='172.28.127.50'
+HOST='172.28.127.58'
 PORT=9990
 RECVMAX=9000
 
@@ -66,7 +66,7 @@ class VideohubDevice(object):
         print self.video_monitoring_outputs
         print self.serial_ports
 
-class InputLabels(object):
+class Labels(object):
     def __init__(self):
         self.labels=OrderedDict()
     def parse(self, msg):
@@ -76,70 +76,174 @@ class InputLabels(object):
             if m:
                 if int(m.group(1)) != idx:
                     raise 'index number is not good'
-                self.labels[m.group(1)] = m.group(2)
+                self.labels[ int(m.group(1)) ] = m.group(2)
                 idx+=1
-
     def show(self):
         for k,v in self.labels.items():
-            print '%s, %s' % (k, v)
-    
+            print '%d, %s' % (k, v)
 
+class SerialPortDirectons(object):
+    def __init__(self):
+        self.directions=OrderedDict()
+    def parse(self, msg):
+        idx=0
+        for l in msg.splitlines():
+            m = re.match(r'(\d+)\s(.+)', l)
+            if m:
+                if int(m.group(1)) != idx:
+                    raise 'index number is not good'
+                self.directions[ int(m.group(1)) ] = m.group(2)
+                idx+=1
+    def show(self):
+        for k,v in self.directions.items():
+            print '%d, %s' % (k, v)    
 
+class VideoRouting(object):
+    def __init__(self):
+        self.routes=OrderedDict()
+    def parse(self, msg):
+        idx=0
+        for l in msg.splitlines():
+            m = re.match(r'(\d+)\s(.+)', l)
+            if m:
+                if int(m.group(1)) != idx:
+                    raise 'index number is not good'
+                self.routes[ int(m.group(1)) ] = int( m.group(2) )
+                idx+=1
+    def show(self):
+        for k,v in self.directions.items():
+            print '%d, %d' % (k, v)
 
-
+class OutputLocks(object):
+    def __init__(self):
+        self.locks=OrderedDict()    
+    def parse(self, msg):
+        idx=0
+        for l in msg.splitlines():
+            m = re.match(r'(\d+)\s(.+)', l)
+            if m:
+                if int(m.group(1)) != idx:
+                    raise 'index number is not good'
+                self.locks[ int(m.group(1)) ] = m.group(2)
+                idx+=1
+    def show(self):
+        for k,v in self.locks.items():
+            print '%d, %d' % (k, v)
+        
 class Videohub(object):
     def __init__(self):
+        self.sec = {
+              'proto' : 'PROTOCOL PREAMBLE:',
+              'device' : 'VIDEOHUB DEVICE:',
+              'in_label' : 'INPUT LABELS:',
+              'out_label' : 'OUTPUT LABELS:',
+              'monitor_label' : 'MONITORING OUTPUT LABELS:',
+              'serial_label' : 'SERIAL PORT LABELS:',
+              'serial_dir' : 'SERIAL PORT DIRECTIONS:',
+              'out_route' : 'VIDEO OUTPUT ROUTING:',
+              'monitor_route' : 'VIDEO MONITORING OUTPUT ROUTING:',
+              'serial_route' : 'SERIAL PORT ROUTING:',
+              'out_lock' : 'VIDEO OUTPUT LOCKS:',
+              'monitor_lock' : 'MONITORING OUTPUT LOCKS:',
+              'serial_lock' : 'SERIAL PORT LOCKS:',
+              }
         self.proto = ProtocolPreamble()
         self.device = VideohubDevice()
+        self.in_label = Labels()
+        self.out_label = Labels()
+        self.monitor_label = Labels()
+        self.serial_label = Labels()
+        self.serial_dir = SerialPortDirectons()
+        self.out_route = VideoRouting()
+        self.monitor_route = VideoRouting()
+        self.serial_route = VideoRouting()
+        self.out_lock = OutputLocks()
+        self.monitor_lock = OutputLocks()
+        self.serial_lock = OutputLocks()
 
-    def parse_initmsg(self, initmsg):
-        tmpmsg = initmsg
-        for line in tmpmsg.splitlines():
-            print line
 
-def openHub(host, port):
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    sock.connect( (host, port) )
-    sock.settimeout(0.01)
-    initmsg=''
-    while True:
-        try:
-            ret = sock.recv(RECVMAX)
-            initmsg+=ret
-        except socket.timeout:
-            break
-    return (sock, initmsg)
+    def divMsgBlock(self, msg):
+        msgblk =[]
+        blk=''
+        for line in msg.splitlines():
+            if line == '':
+                msgblk.append(blk)
+                blk=''
+            else:
+                blk+=line
+                blk+='\n'
+        return msgblk
 
-def closeHub(sock):
-    sock.close()
+    def parse_initmsg(self):
+        msgblks = self.divMsgBlock(self.initmsg)
+        for blk in msgblks:
+            m = re.match(r'INPUT LABELS:', blk)
+            if m:
+                self.in_label.parse(blk)
+                continue
+            m = re.match(r'OUTPUT LABELS:', blk)
+            if m:
+                self.out_label.parse(blk)
+                continue            
+            m = re.match(r'MONITORING OUTPUT LABELS:', blk)
+            if m:
+                self.monitor_label.parse(blk)
+                continue         
+            m = re.match(r'SERIAL PORT LABELS:', blk)
+            if m:
+                self.serial_label.parse(blk)
+                continue
+            m = re.match(r'SERIAL PORT DIRECTIONS:', blk)
+            if m:
+                self.serial_dir.parse(blk)
+                continue
+            m = re.match(r'VIDEO OUTPUT ROUTING:', blk)
+            if m:
+                self.out_route.parse(blk)
+                continue
+            m = re.match(r'VIDEO MONITORING OUTPUT ROUTING:', blk)
+            if m:
+                self.monitor_route.parse(blk)
+                continue
+            m = re.match(r'SERIAL PORT ROUTING:', blk)
+            if m:
+                self.serial_route.parse(blk)
+                continue
+            m = re.match(r'VIDEO OUTPUT LOCKS:', blk)
+            if m:
+                self.out_lock.parse(blk)
+                continue
+            m = re.match(r'MONITORING OUTPUT LOCKS:', blk)
+            if m:
+                self.monitor_lock.parse(blk)
+                continue
+            m = re.match(r'SERIAL PORT LOCKS:', blk)
+            if m:
+                self.serial_lock.parse(blk)
+                continue
 
-def divMsgBlock(msg):
-    msgblk =[]
-    blk=''
-    for line in msg.splitlines():
-        print line
-        if line == '':
-            msgblk.append(blk)
-            blk=''
-        else:
-            blk+=line
-            blk+='\n'
-    return msgblk
+    def openHub(self, host, port):
+        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.sock.connect( (host, port) )
+        self.sock.settimeout(0.01)
+        self.initmsg=''
+        while True:
+            try:
+                ret = self.sock.recv(RECVMAX)
+                self.initmsg+=ret
+            except socket.timeout:
+                break
+        self.parse_initmsg()
 
-s, msg = openHub(HOST, PORT)
-closeHub(s)
-v = Videohub()
-#v.parse_initmsg(msg)
-msgblocks = divMsgBlock(msg)
+    def closeHub(self):
+        self.sock.close()
 
-pp = ProtocolPreamble()
-pp.parse(msgblocks[0])
-vd = VideohubDevice()
-vd.parse(msgblocks[1])
-vd.show()
-il = InputLabels()
-il.parse(msgblocks[2])
-il.show()
+
+
+
+vh = Videohub()
+vh.openHub(HOST, PORT)
+vh.closeHub()
 
 exit()
 print msgblocks
