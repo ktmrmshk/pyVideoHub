@@ -1,4 +1,4 @@
 pyVideoHub
 ==========
 
-python script to handle Black Magic Video Hub
+python script to handle BlackMagic VideoHub
