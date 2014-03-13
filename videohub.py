@@ -78,7 +78,7 @@ class Labels(object):
             if m:
                 if int(m.group(1)) != idx:
                     raise 'index number is not good'
-                self.labels[ int(m.group(1)) ] = m.group(2)
+                self.labels[ int( m.group(1) ) ] = m.group(2)
                 idx+=1
     def show(self):
         for k,v in self.labels.items():
@@ -260,11 +260,27 @@ class Videohub(object):
     def closeHub(self):
         self.sock.close()
 
-
+    def save_label(self, filename):
+        out={}
+        out[ self.sec['in_label'] ] = self.in_label.labels
+        out[ self.sec['out_label'] ] = self.out_label.labels
+        out[ self.sec['monitor_label'] ] = self.monitor_label.labels
+        out[ self.sec['serial_label'] ] = self.serial_label.labels
+        with open(filename, 'w') as f:
+            f.write( json.dumps(out, indent=2) )
+    def save_route(self, filename):
+        out={}
+        out[ self.sec['out_route'] ] = self.out_route.routes
+        out[ self.sec['monitor_route'] ] = self.monitor_route.routes
+        out[ self.sec['serial_route'] ] = self.serial_route.routes
+        with open(filename, 'w') as f:
+            f.write( json.dumps(out, indent=2) )
 
 
 vh = Videohub()
 vh.openHub(HOST, PORT)
+vh.save_label('test.json')
+vh.save_route('test2.json')
 vh.closeHub()
 
 exit()
