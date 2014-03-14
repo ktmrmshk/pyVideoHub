@@ -1,8 +1,33 @@
 import videohub
+import os
+import glob
 from natsort.natsort import natsorted
 
 TITLE='Videohub Controller2.0'
 HOST='172.28.127.58:9990'
+PRESETDIR='./preset'
+ROUTEEXT='route'
+LABELEXT='label'
+
+def findfile(dir, ext):
+    filelist=[]
+    for f in glob.glob('%s/*.%s' %(dir, ext) ):
+        filelist.append( f[len(dir)+1:] )
+    return filelist
+
+def make_filelist(radioname, filename):
+    FILELIST='''
+    <div class="radio">
+      <label>
+        <input type="radio" name="###RADIONAME###"  value="###RADIOVAL###">
+        ###FILEITEM###
+      </label>
+    </div>
+    '''
+    radio = FILELIST.replace('###RADIONAME###', radioname)
+    radio = radio.replace('###FILEITEM###', filename)
+    radio = radio.replace('###RADIOVAL###', filename)
+    return radio
 
 
 def make_table_label_cur(optlist, optname, sel=0):
@@ -83,6 +108,12 @@ def render(template, vh):
     table = table.replace('###TABLE_ROW###', table_row)
     base = base.replace('###TABLE_MONITOR_OUT###', table)
     
+    #routing preset list
+    rfiles = findfile(PRESETDIR, ROUTEEXT)
+    radio = ''
+    for f in rfiles:
+        radio += make_filelist('routepreset', f)
+    base = base.replace('###ROUTEFILELIST###', radio)
     
     return base
 
