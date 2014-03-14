@@ -233,10 +233,10 @@ class Videohub(object):
         self.monitor_lock = OutputLocks('monitor_lock')
         self.serial_lock = OutputLocks('serial_lock')
 
-        self.tmp_in_label = Labels('in_label')
-        self.tmp_out_label = Labels('out_label')
-        self.tmp_monitor_label = Labels('monitor_label')
-        self.tmp_serial_label = Labels('serial_label')
+#         self.tmp_in_label = Labels('in_label')
+#         self.tmp_out_label = Labels('out_label')
+#         self.tmp_monitor_label = Labels('monitor_label')
+#         self.tmp_serial_label = Labels('serial_label')
         
         #self.tmp_serial_dir = SerialPortDirectons()
         
@@ -355,16 +355,16 @@ class Videohub(object):
         with open(filename, 'r') as f:
             tmpbuf = f.read()
         tmp = json.loads(tmpbuf)
-        self.tmp_in_label.labels = tmp[ self.sec['in_label'] ]
-        self.tmp_out_label.labels = tmp[ self.sec['out_label'] ]
-        self.tmp_monitor_label.labels = tmp[ self.sec['monitor_label'] ]    
-        self.tmp_serial_label.labels = tmp[ self.sec['serial_label'] ]    
+        self.in_label.labels = tmp[ self.sec['in_label'] ]
+        self.out_label.labels = tmp[ self.sec['out_label'] ]
+        self.monitor_label.labels = tmp[ self.sec['monitor_label'] ]    
+        self.serial_label.labels = tmp[ self.sec['serial_label'] ]    
  
     def set_label(self):
-        self.tmp_in_label.setdevice(self.sock)
-        self.tmp_out_label.setdevice(self.sock)
-        self.tmp_monitor_label.setdevice(self.sock)
-        self.tmp_serial_label.setdevice(self.sock)
+        self.in_label.setdevice(self.sock)
+        self.out_label.setdevice(self.sock)
+        self.monitor_label.setdevice(self.sock)
+        self.serial_label.setdevice(self.sock)
 
     def save_route(self, filename, out_route_=None, monitor_route_=None, serial_route_=None):
         out={}
@@ -395,10 +395,10 @@ class Videohub(object):
         self.tmp_serial_route.setdevice(self.sock)
 
     def set_default_label(self):
-        self.tmp_in_label.make_default(self.device.video_inputs, 'input', True)
-        self.tmp_out_label.make_default(self.device.video_outputs, 'output', True)
-        self.tmp_monitor_label.make_default(self.device.video_monitoring_outputs, 'monitor', True)
-        self.tmp_serial_label.make_default(self.device.serial_ports, 'serial', True)
+        self.in_label.make_default(self.device.video_inputs, 'input', True)
+        self.out_label.make_default(self.device.video_outputs, 'output', True)
+        self.monitor_label.make_default(self.device.video_monitoring_outputs, 'monitor', True)
+        self.serial_label.make_default(self.device.serial_ports, 'serial', True)
         self.set_label()
    
     def set_default_route(self):
