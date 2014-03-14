@@ -31,7 +31,6 @@ class ProtocolPreamble(object):
         for l in msg.splitlines():
             m = re.match(r'Version:\s([0-9.]+)', l)
             if(m):
-                print m.group(1)
                 self.version = m.group(1)
 
 class VideohubDevice(object):
@@ -177,7 +176,7 @@ class VideoRouting(object):
             cmd+= '%s %d\n' % (k, v)
         else:
             cmd+='\n'
-        print cmd
+        #print cmd
         sock.sendall(cmd)
         msg=''
         while True:
@@ -186,7 +185,7 @@ class VideoRouting(object):
                 msg+=ret
             except socket.timeout:
                 break
-        print msg
+        #print msg
         
     def make_default(self, num_ch, is_overwrite=False):
         routes=OrderedDict()
@@ -411,7 +410,8 @@ if __name__ == '__main__':
     
     vh = Videohub()
     vh.openHub(HOST, PORT)
-    vh.save_label('test.json')
+    vh.save_label('label.json')
+    vh.save_route('route.json')
     #vh.save_route('test2.json')
     #vh.load_label('test.json')
     #vh.load_route('test2.json')

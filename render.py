@@ -23,9 +23,9 @@ def make_table_label_cur(optlist, optname, sel=0):
         opt+= '%d: %s' % (int(k)+1, v)
         opt+= '</option>'
     tmp=TABLE_LABEL_CUR.replace('###NAME###', optname)
-    return TABLE_LABEL_CUR.replace('###OPTION###', opt)
+    return tmp.replace('###OPTION###', opt)
 
-def make_tablerow(out_labels, out_routes, in_labels):
+def make_tablerow(out_labels, out_routes, in_labels, role='out'):
     TABLE_ROW_TEMPLATE='''
     <tr>
         <td> ###OUT_LABEL### </td>
@@ -40,12 +40,12 @@ def make_tablerow(out_labels, out_routes, in_labels):
         tmpstr = '%d: %s' % (i+1, out_labels[str(i)]) 
         row = row.replace('###OUT_LABEL###', tmpstr)
         
-        outidx = out_routes[str(i)]
-        table_sel = make_table_label_cur(in_labels, 'label', outidx)
+        in_idx = out_routes[str(i)]
+        table_sel = make_table_label_cur(in_labels, '%s%d' % (role, i), in_idx)
         row = row.replace('###IN_LABEL_NEW###', table_sel)
         
         #outidx = out_routes[str(i)]
-        tmpstr = '%d: %s' % (outidx+1, in_labels[ str(outidx) ]) 
+        tmpstr = '%d: %s' % (in_idx+1, in_labels[ str(in_idx) ]) 
         row = row.replace('###IN_LABEL_CUR###', tmpstr)
         table_row += row
     return table_row
@@ -75,13 +75,13 @@ def render(template, vh):
     
     #MAIN OUT
     table = make_table('Main Output')
-    table_row = make_tablerow(vh.out_label.labels, vh.tmp_out_route.routes, vh.in_label.labels)
+    table_row = make_tablerow(vh.out_label.labels, vh.out_route.routes, vh.in_label.labels, 'mainout')
     table = table.replace('###TABLE_ROW###', table_row)
     base = base.replace('###TABLE_MAIN_OUT###', table)
     
     #MONITOR OUT
     table = make_table('Monitor Output')
-    table_row = make_tablerow(vh.monitor_label.labels, vh.tmp_monitor_route.routes, vh.in_label.labels)
+    table_row = make_tablerow(vh.monitor_label.labels, vh.monitor_route.routes, vh.in_label.labels, 'monitorout')
     table = table.replace('###TABLE_ROW###', table_row)
     base = base.replace('###TABLE_MONITOR_OUT###', table)
     
@@ -91,8 +91,14 @@ def render(template, vh):
 
 if __name__ == '__main__':
     vh = videohub.Videohub()
-    vh.load_label('test.json')
-    vh.load_route('test2.json')
-    #DEBUG
-    vh.device.video_inputs = 72
+    vh.openHub('172.28.127.58', 9990)
+    
     print render('view_control.html', vh)
+    vh.closeHub()
+
+    #vh.load_label('test.json')
+    #vh.load_route('test2.json')
+    #DEBUG
+    #vh.device.video_inputs = 72
+
+    
