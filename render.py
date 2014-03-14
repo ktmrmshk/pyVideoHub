@@ -5,8 +5,6 @@ TITLE='Videohub Controller2.0'
 HOST='172.28.127.58:9990'
 
 
-
-
 def make_table_label_cur(optlist, optname, sel=0):
     TABLE_LABEL_CUR='''
     <select class="" name="###NAME###">

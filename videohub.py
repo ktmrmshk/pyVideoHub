@@ -5,7 +5,7 @@ import json
 
 HOST='172.28.127.58'
 PORT=9990
-RECVMAX=9000
+RECVMAX=10240
 
 g_section = {
       'proto' : 'PROTOCOL PREAMBLE:',
@@ -175,8 +175,8 @@ class VideoRouting(object):
         for k,v in self.routes.items():
             cmd+= '%s %d\n' % (k, v)
         else:
-            cmd+='\n'
-        #print cmd
+            cmd+='\n\n\n'
+        print cmd
         sock.sendall(cmd)
         msg=''
         while True:
@@ -184,6 +184,7 @@ class VideoRouting(object):
                 ret = sock.recv(RECVMAX)
                 msg+=ret
             except socket.timeout:
+                #print msg
                 break
         #print msg
         
@@ -314,7 +315,7 @@ class Videohub(object):
             if m:
                 self.serial_lock.parse(blk)
                 continue
-
+        
     def openHub(self, host, port):
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock.connect( (host, port) )
